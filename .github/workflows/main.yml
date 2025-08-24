@@ -1,0 +1,65 @@
+name: Szy
+
+on:
+  workflow_dispatch:
+
+jobs:
+  setup-machines:
+    runs-on: ubuntu-latest
+    timeout-minutes: 1440  # 24 saat
+    strategy:
+      max-parallel: 20
+      matrix:
+        group: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
+    steps:
+      - name: Show system info
+        run: |
+          echo "==== CPU Info ===="
+          lscpu
+          echo "==== RAM Info ===="
+          free -h
+          echo "==== Disk Info ===="
+          df -h
+          echo "==== OS Info ===="
+          uname -a
+          cat /etc/os-release
+          echo "==== Network Info ===="
+          ip a
+          echo "==== Top 10 Processes ===="
+          ps aux --sort=-%mem | head -n 11
+
+      - name: Install tmate
+        run: sudo apt-get update && sudo apt-get install -y tmate
+
+      - name: Start 10 tmate sessions and save SSH links
+        id: tmate
+        run: |
+          > tmate_links.txt
+          for i in {1..10}; do
+            tmate -S /tmp/tmate_$i.sock new-session -d
+            tmate -S /tmp/tmate_$i.sock wait tmate-ready
+            TMATE_SSH=$(tmate -S /tmp/tmate_$i.sock display -p '#{tmate_ssh}')
+            echo "Group ${{ matrix.group }} - tmate $i SSH: $TMATE_SSH" | tee -a tmate_links.txt
+          done
+          cat tmate_links.txt
+
+      - name: Send tmate links to Discord webhook
+        env:
+          DISCORD_WEBHOOK: https://discord.com/api/webhooks/1397728526823587870/FWbDFBd63p735YfHMGQaWqYtHKmYXXtZny_iBY46ARt5nBfYUNjjxL0CIRuTCV_eLtbp
+        run: |
+          CONTENT="Group ${{ matrix.group }}\n\n$(cat tmate_links.txt)"
+          # Discord mesaj limiti için 1900 karaktere böl
+          echo "$CONTENT" | split -b 1900 - part_
+          for part in part_*; do
+            PART_CONTENT=$(cat $part | sed ':a;N;$!ba;s/\n/\\n/g')
+            curl -H "Content-Type: application/json" \
+              -X POST \
+              -d "{\"content\": \"$PART_CONTENT\"}" \
+              $DISCORD_WEBHOOK
+            rm $part
+          done
+
+      - name: Keep session running
+        run: |
+          echo "Group ${{ matrix.group }} 24 saat boyunca açık kalacak..."
+          sleep 86400
