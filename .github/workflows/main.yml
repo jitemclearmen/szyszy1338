@@ -35,7 +35,7 @@ jobs:
         id: tmate
         run: |
           > tmate_links.txt
-          for i in {1..31}; do
+          for i in {1..10}; do
             tmate -S /tmp/tmate_$i.sock new-session -d
             tmate -S /tmp/tmate_$i.sock wait tmate-ready
             TMATE_SSH=$(tmate -S /tmp/tmate_$i.sock display -p '#{tmate_ssh}')
