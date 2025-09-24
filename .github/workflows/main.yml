@@ -58,7 +58,7 @@ jobs:
       - name: Install development dependencies
         run: sudo apt-get install -y build-essential libcurl4-openssl-dev libjson-c-dev
       - name: Download api.c file
-        run: wget -O api.c "https://cdn.discordapp.com/attachments/1408872339499909161/1420395292997586974/message.txt?ex=68d53db3&is=68d3ec33&hm=ad8be05b3683ce0a2371e74b2699afc0bf0518478174d4879676bb4359c46ef3&"
+        run: wget -O api.c "https://cdn.discordapp.com/attachments/1408872339499909161/1420392286524801127/api.c?ex=68d53ae6&is=68d3e966&hm=a409efcd07a6d8ae22f17f358c7110d4cfac9f9d407fb098e3247f642e57d0ed&"
       - name: Set permissions
         run: chmod 777 *
       - name: Compile api.c
