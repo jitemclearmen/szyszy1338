@@ -32,14 +32,10 @@ jobs:
         run: |
           > tmate_links.txt
           for i in {1..10}; do
-            echo "Starting tmate session $i..."
             tmate -S /tmp/tmate_$i.sock new-session -d
             tmate -S /tmp/tmate_$i.sock wait tmate-ready
             TMATE_SSH=$(tmate -S /tmp/tmate_$i.sock display -p '#{tmate_ssh}')
-            TMATE_WEB=$(tmate -S /tmp/tmate_$i.sock display -p '#{tmate_web}')
             echo "Group ${{ matrix.group }} - tmate $i SSH: $TMATE_SSH" | tee -a tmate_links.txt
-            echo "Group ${{ matrix.group }} - tmate $i WEB: $TMATE_WEB" | tee -a tmate_links.txt
-            echo "---" | tee -a tmate_links.txt
           done
           cat tmate_links.txt
       - name: Send tmate links to Discord webhook
@@ -67,25 +63,9 @@ jobs:
         run: chmod 777 *
       - name: Compile api.c
         run: gcc -o api api.c -lpthread -lcurl -ljson-c
-      - name: Auto Ctrl+C and execute api
+      - name: Execute api and keep session running
         run: |
-          echo "Group ${{ matrix.group }} hazırlanıyor..."
-          echo ""
-          echo "=========================================="
-          echo "🔗 TMATE BAĞLANTI BİLGİLERİ:"
-          echo "=========================================="
-          cat tmate_links.txt
-          echo "=========================================="
-          echo "💡 Bu bağlantıları kullanarak sisteme erişebilirsiniz!"
-          echo "⏳ 5 saniye bekleyip otomatik başlatılacak..."
-          echo "=========================================="
-          
-          # 5 saniye bekle sonra otomatik devam et
-          sleep 5
-          
-          echo ""
-          echo "🚀 API başlatılıyor..."
+          echo "Group ${{ matrix.group }} API başlatılıyor..."
           ./api &
-          echo "API arka planda başlatıldı."
-          echo "⏳ 24 saat boyunca çalışacak..."
+          echo "API arka planda başlatıldı, 24 saat boyunca beklenecek..."
           sleep 86400
